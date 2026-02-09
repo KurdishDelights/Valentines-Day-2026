@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#ff4d6d" />
+  <title>💘 Be My Valentine?</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Optional: clean, modern font -->
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <main class="shell">
+    <section class="card" aria-label="Valentine card">
+      <div class="badge" aria-hidden="true">💌</div>
+
+      <h1 class="title">Will you be my Valentine?</h1>
+      <p class="subtitle">There is only one correct answer 😇</p>
+
+      <div class="actions" id="actions" aria-label="Answer buttons">
+        <button class="btn btn-yes" id="yesBtn" type="button">
+          Yes <span aria-hidden="true">💖</span>
+        </button>
+
+        <button class="btn btn-no" id="noBtn" type="button" aria-label="No">
+          No <span aria-hidden="true">🙃</span>
+        </button>
+      </div>
+
+      <div class="result" id="result" role="status" aria-live="polite">
+        YAAAAAY!!! 💞💞💞
+      </div>
+
+      <p class="hint" id="hint">Tip: try clicking “No” 😈</p>
+
+      <footer class="footer">
+        <span class="tiny">Made with love 💘</span>
+      </footer>
+    </section>
+  </main>
+
+  <div class="bg" aria-hidden="true" id="bg"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
