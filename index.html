@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>💘 Be My Valentine?</title>
+  <style>
+    :root {
+      --bg1: #ff4d6d;
+      --bg2: #ff8fab;
+      --card: rgba(255,255,255,0.18);
+      --cardBorder: rgba(255,255,255,0.35);
+      --text: #ffffff;
+      --btnYes: #22c55e;
+      --btnNo: #ef4444;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
+      overflow: hidden;
+      background: radial-gradient(circle at top left, var(--bg2), transparent 60%),
+                  radial-gradient(circle at bottom right, #ffb3c6, transparent 55%),
+                  linear-gradient(135deg, var(--bg1), var(--bg2));
+      display: grid;
+      place-items: center;
+      padding: 16px;
+    }
+
+    .card {
+      width: min(720px, 96vw);
+      padding: 28px 22px;
+      border-radius: 24px;
+      background: var(--card);
+      border: 1px solid var(--cardBorder);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+      backdrop-filter: blur(10px);
+      text-align: center;
+      position: relative;
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(28px, 4vw, 46px);
+      letter-spacing: 0.5px;
+    }
+
+    p {
+      margin: 0 0 18px;
+      font-size: clamp(16px, 2.2vw, 20px);
+      opacity: 0.95;
+    }
+
+    .btnRow {
+      margin-top: 18px;
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      flex-wrap: wrap;
+      position: relative;
+      min-height: 64px;
+      padding-bottom: 10px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 999px;
+      padding: 14px 22px;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 12px 25px rgba(0,0,0,0.20);
+      transform: translateZ(0);
+      transition: transform 0.12s ease, filter 0.12s ease;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    button:active { transform: scale(0.98); }
+    button:hover { filter: brightness(1.05); }
+
+    #yesBtn { background: var(--btnYes); color: white; }
+    #noBtn  { background: var(--btnNo);  color: white; position: absolute; }
+
+    .result {
+      margin-top: 14px;
+      font-size: 20px;
+      font-weight: 700;
+      display: none;
+    }
+
+    .subtle {
+      margin-top: 10px;
+      font-size: 14px;
+      opacity: 0.85;
+    }
+
+    /* Floating background hearts (soft) */
+    .bg-heart {
+      position: absolute;
+      font-size: 18px;
+      opacity: 0.35;
+      animation: drift linear forwards;
+      pointer-events: none;
+      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.15));
+    }
+    @keyframes drift {
+      from { transform: translateY(20vh) translateX(0) rotate(0deg); }
+      to   { transform: translateY(-120vh) translateX(var(--dx)) rotate(360deg); }
+    }
+
+    /* Emoji confetti hearts (foreground) */
+    .confetti {
+      position: fixed;
+      left: 0; top: 0;
+      transform: translate(-50%, -50%);
+      font-size: 26px;
+      pointer-events: none;
+      will-change: transform, opacity;
+      filter: drop-shadow(0 8px 12px rgba(0,0,0,0.18));
+    }
+  </style>
+</head>
+<body>
+  <div class="card" id="card">
+    <h1>💘 Will you be my Valentine?</h1>
+    <p>There is only one correct answer 😇</p>
+
+    <div class="btnRow" id="btnRow">
+      <button id="yesBtn">Yes 💖</button>
+      <button id="noBtn" aria-label="No">No 🙃</button>
+    </div>
+
+    <div class="result" id="result">YAAAAAY!!! 💞💞💞</div>
+    <div class="subtle" id="subtle">Tip: try clicking “No” 😈</div>
+  </div>
+
+  <script>
+    const yesBtn = document.getElementById("yesBtn");
+    const noBtn = document.getElementById("noBtn");
+    const btnRow = document.getElementById("btnRow");
+    const result = document.getElementById("result");
+    const subtle = document.getElementById("subtle");
+
+    // --- Place the No button somewhere inside the button row (absolute positioning)
+    function clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }
+
+    function placeNoButton(x = null, y = null) {
+      const rowRect = btnRow.getBoundingClientRect();
+      const btnRect = noBtn.getBoundingClientRect();
+
+      const padding = 6;
+      const maxX = rowRect.width  - btnRect.width  - padding;
+      const maxY = rowRect.height - btnRect.height - padding;
+
+      const nx = (x === null) ? Math.random() * maxX : clamp(x, padding, maxX);
+      const ny = (y === null) ? Math.random() * maxY : clamp(y, padding, maxY);
+
+      noBtn.style.left = nx + "px";
+      noBtn.style.top  = ny + "px";
+    }
+
+    // Initialize after layout
+    window.addEventListener("load", () => {
+      // Make row tall enough so No can roam
+      btnRow.style.minHeight = "90px";
+      placeNoButton(btnRow.clientWidth * 0.62, 10);
+      spawnBackgroundHearts();
+    });
+
+    window.addEventListener("resize", () => placeNoButton());
+
+    // --- Make "No" run away from mouse/touch
+    function moveAwayFromPointer(clientX, clientY) {
+      const rowRect = btnRow.getBoundingClientRect();
+      const btnRect = noBtn.getBoundingClientRect();
+
+      // pointer relative to row
+      const px = clientX - rowRect.left;
+      const py = clientY - rowRect.top;
+
+      // current button center relative to row
+      const bx = (btnRect.left - rowRect.left) + btnRect.width / 2;
+      const by = (btnRect.top  - rowRect.top)  + btnRect.height / 2;
+
+      // vector from pointer -> button
+      let dx = bx - px;
+      let dy = by - py;
+
+      const dist = Math.hypot(dx, dy) || 1;
+
+      // If pointer gets close, jump farther
+      const dangerRadius = 110;
+      if (dist < dangerRadius) {
+        // Normalize and push away
+        dx /= dist;
+        dy /= dist;
+
+        const push = 140; // how far it jumps
+        const targetX = (btnRect.left - rowRect.left) + dx * push;
+        const targetY = (btnRect.top  - rowRect.top)  + dy * push;
+
+        // Add a little randomness so it feels playful
+        const jitter = 40;
+        placeNoButton(targetX + (Math.random()-0.5)*jitter,
+                      targetY + (Math.random()-0.5)*jitter);
+      }
+    }
+
+    // Mouse
+    btnRow.addEventListener("mousemove", (e) => {
+      moveAwayFromPointer(e.clientX, e.clientY);
+    });
+
+    // Touch (mobile)
+    btnRow.addEventListener("touchstart", (e) => {
+      const t = e.touches[0];
+      if (!t) return;
+      moveAwayFromPointer(t.clientX, t.clientY);
+    }, { passive: true });
+
+    btnRow.addEventListener("touchmove", (e) => {
+      const t = e.touches[0];
+      if (!t) return;
+      moveAwayFromPointer(t.clientX, t.clientY);
+    }, { passive: true });
+
+    // If they somehow click "No", still dodge + tease
+    noBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      placeNoButton();
+      subtle.textContent = "Nice try 😏";
+      setTimeout(() => subtle.textContent = "Tip: try clicking “No” 😈", 1200);
+    });
+
+    // --- Yes button heart explosion
+    const HEARTS = ["💖","💘","💝","💗","💓","💕","💞","❤️","🩷","😍"];
+
+    function heartBurst(centerX, centerY, amount = 70) {
+      for (let i = 0; i < amount; i++) {
+        const el = document.createElement("div");
+        el.className = "confetti";
+        el.textContent = HEARTS[Math.floor(Math.random() * HEARTS.length)];
+        document.body.appendChild(el);
+
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 2 + Math.random() * 6;
+        const vx = Math.cos(angle) * speed;
+        const vy = Math.sin(angle) * speed - (2 + Math.random() * 3);
+
+        let x = centerX;
+        let y = centerY;
+        let rot = Math.random() * 360;
+        let life = 0;
+        const maxLife = 120 + Math.random() * 40;
+
+        function tick() {
+          life++;
+          x += vx * 4;
+          y += (vy * 4) + life * 0.18; // gravity
+          rot += 6;
+
+          el.style.transform = `translate(${x}px, ${y}px) rotate(${rot}deg)`;
+          el.style.opacity = String(1 - life / maxLife);
+
+          if (life < maxLife) requestAnimationFrame(tick);
+          else el.remove();
+        }
+
+        // start at center
+        el.style.transform = `translate(${x}px, ${y}px)`;
+        requestAnimationFrame(tick);
+      }
+    }
+
+    yesBtn.addEventListener("click", () => {
+      result.style.display = "block";
+      subtle.textContent = "You’re stuck with me 😌💞";
+      // Freeze the No button (optional: hide it after yes)
+      noBtn.style.display = "none";
+
+      const r = yesBtn.getBoundingClientRect();
+      const cx = r.left + r.width / 2;
+      const cy = r.top + r.height / 2;
+
+      heartBurst(cx, cy, 90);
+      // extra bursts for drama
+      setTimeout(() => heartBurst(cx + 120, cy + 30, 55), 160);
+      setTimeout(() => heartBurst(cx - 120, cy + 30, 55), 260);
+    });
+
+    // --- Ambient floating hearts in background
+    function spawnBackgroundHearts() {
+      const count = 18;
+      for (let i = 0; i < count; i++) createBgHeart(true);
+      setInterval(() => createBgHeart(false), 900);
+    }
+
+    function createBgHeart(initial) {
+      const el = document.createElement("div");
+      el.className = "bg-heart";
+      el.textContent = HEARTS[Math.floor(Math.random() * HEARTS.length)];
+      document.body.appendChild(el);
+
+      const x = Math.random() * window.innerWidth;
+      const duration = 6500 + Math.random() * 6000;
+      const delay = initial ? Math.random() * 2000 : 0;
+      const dx = (Math.random() * 160 - 80) + "px";
+
+      el.style.left = x + "px";
+      el.style.bottom = (-30 - Math.random() * 40) + "px";
+      el.style.setProperty("--dx", dx);
+      el.style.animationDuration = duration + "ms";
+      el.style.animationDelay = delay + "ms";
+
+      setTimeout(() => el.remove(), duration + delay + 100);
+    }
+  </script>
+</body>
+</html>
