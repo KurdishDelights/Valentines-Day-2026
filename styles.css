@@ -104,6 +104,24 @@ body{
   -webkit-tap-highlight-color: transparent;
 }
 
+.music-btn{
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 999;
+  border: 1px solid rgba(255,255,255,.28);
+  background: rgba(255,255,255,.16);
+  color: white;
+  padding: 10px 14px;
+  border-radius: 999px;
+  font-weight: 800;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 14px 30px rgba(0,0,0,.22);
+  display: none; /* JS will show if autoplay is blocked */
+}
+
 .btn:hover{
   filter: brightness(1.05);
   transform: translateY(-1px);
@@ -182,3 +200,4 @@ body{
   will-change: transform, opacity;
   filter: drop-shadow(0 10px 16px rgba(0,0,0,.18));
 }
+
